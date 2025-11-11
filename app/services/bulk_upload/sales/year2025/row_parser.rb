@@ -137,6 +137,32 @@ class BulkUpload::Sales::Year2025::RowParser
     field_121: "What are the total monthly leasehold charges for the property?",
   }.freeze
 
+  CASE_INSENSITIVE_FIELDS = [
+    :field_28, # Age of buyer 1
+    :field_35, # Age of person 2
+    :field_43, # Age of person 3
+    :field_47, # Age of person 4
+    :field_51, # Age of person 5
+    :field_55, # Age of person 6
+
+    :field_29, # Gender identity of buyer 1
+    :field_36, # Gender identity of person 2
+    :field_44, # Gender identity of person 3
+    :field_48, # Gender identity of person 4
+    :field_52, # Gender identity of person 5
+    :field_56, # Gender identity of person 6
+
+    :field_31, # What is buyer 1’s nationality
+    :field_38, # What is buyer 2’s nationality
+
+    :field_58, # What was buyer 1’s previous tenure?
+    :field_64, # What was buyer 2’s previous tenure?
+
+    :field_75, # What is the total amount the buyers had in savings before they paid any deposit for the property?
+    :field_70, # What is buyer 1’s gross annual income?
+    :field_72, # What is buyer 2’s gross annual income?
+  ].freeze
+
   ERROR_BASE_KEY = "validations.sales.2025.bulk_upload".freeze
 
   attribute :bulk_upload
