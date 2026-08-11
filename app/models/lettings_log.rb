@@ -828,7 +828,7 @@ class LettingsLog < Log
   end
 
   def scheme_has_confidential_information?
-    scheme&.sensitive == "Yes"
+    scheme&.has_confidential_information? || false
   end
 
   def referral_is_from_local_authority_housing_register?

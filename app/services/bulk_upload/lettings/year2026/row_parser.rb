@@ -1589,7 +1589,7 @@ private
   end
 
   def scheme_has_confidential_information?
-    scheme&.sensitive == "Yes"
+    scheme&.has_confidential_information? || false
   end
 
   def startdate

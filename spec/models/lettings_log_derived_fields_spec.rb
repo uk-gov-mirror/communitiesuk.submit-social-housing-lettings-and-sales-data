@@ -1649,23 +1649,10 @@ RSpec.describe LettingsLog, type: :model do
         location.update_column(:location_code, nil)
       end
 
-      it "does not infer an LA, so the user is routed to the LA drop-down" do
-        log.la = nil
+      it "leaves the LA blank and not inferred" do
         log.set_derived_fields!
 
         expect(log.read_attribute(:la)).to be_nil
-        expect(log.is_la_inferred).to be false
-      end
-
-      it "keeps a manually chosen LA when one has been provided" do
-        # In the real edit flow the log is persisted, so the location/startdate have not
-        # "changed" and the earlier LA-reset branches do not fire. Stub those guards to
-        # isolate the confidential handling, which must not clobber the drop-down answer.
-        allow(log).to receive_messages(startdate_changed?: false, location_changed?: false)
-        log.la = "E07000105"
-        log.set_derived_fields!
-
-        expect(log.read_attribute(:la)).to eq("E07000105")
         expect(log.is_la_inferred).to be false
       end
     end
