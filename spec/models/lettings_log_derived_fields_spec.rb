@@ -1597,6 +1597,9 @@ RSpec.describe LettingsLog, type: :model do
     let(:county) { "Testshire" }
     let(:postcode_full) { "SW1 1AA" }
     let(:la) { "E07000105" }
+    let(:uprn_selection) { uprn }
+    let(:postcode_known) { 1 }
+    let(:manual_address_entry_selected) { true }
 
     around do |example|
       Timecop.freeze(collection_start_date_for_year(2026)) do
@@ -1607,7 +1610,7 @@ RSpec.describe LettingsLog, type: :model do
 
     before do
       log.needstype = 2
-      log.assign_attributes(uprn:, uprn_known:, uprn_confirmed:, address_line1:, address_line2:, town_or_city:, county:, postcode_full:, la:)
+      log.assign_attributes(uprn:, uprn_known:, uprn_confirmed:, address_line1:, address_line2:, town_or_city:, county:, postcode_full:, la:, uprn_selection:, postcode_known:, manual_address_entry_selected:)
     end
 
     context "when the scheme has confidential information" do
@@ -1633,6 +1636,9 @@ RSpec.describe LettingsLog, type: :model do
           .and change { log.read_attribute(:town_or_city) }.from(town_or_city).to(nil)
           .and change { log.read_attribute(:county) }.from(county).to(nil)
           .and change { log.read_attribute(:postcode_full) }.from(postcode_full).to(nil)
+          .and change { log.read_attribute(:uprn_selection) }.from(uprn_selection).to(nil)
+          .and change { log.read_attribute(:postcode_known) }.from(postcode_known).to(nil)
+          .and change { log.read_attribute(:manual_address_entry_selected ) }.from(manual_address_entry_selected).to(nil)
       end
 
       context "when the log is a new-build first let" do
@@ -1654,6 +1660,12 @@ RSpec.describe LettingsLog, type: :model do
             .and change { log.read_attribute(:town_or_city) }.from(town_or_city).to(nil)
             .and change { log.read_attribute(:county) }.from(county).to(nil)
             .and change { log.read_attribute(:postcode_full) }.from(postcode_full).to(nil)
+            .and change { log.read_attribute(:town_or_city) }.from(town_or_city).to(nil)
+            .and change { log.read_attribute(:county) }.from(county).to(nil)
+            .and change { log.read_attribute(:postcode_full) }.from(postcode_full).to(nil)
+            .and change { log.read_attribute(:uprn_selection) }.from(uprn_selection).to(nil)
+            .and change { log.read_attribute(:postcode_known) }.from(postcode_known).to(nil)
+            .and change { log.read_attribute(:manual_address_entry_selected ) }.from(manual_address_entry_selected).to(nil)
         end
       end
     end
