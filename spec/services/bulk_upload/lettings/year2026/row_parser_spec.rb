@@ -1864,6 +1864,71 @@ RSpec.describe BulkUpload::Lettings::Year2026::RowParser do
       end
     end
 
+    describe "UPRN and address fields for a supported housing log in a confidential scheme" do
+      let(:scheme) { create(:scheme, :with_old_visible_id, owning_organisation: owning_org, sensitive: 1) }
+      let(:base_attributes) do
+        setup_section_params.merge({
+          field_4: 2,
+          field_5: "S#{scheme.id}",
+          field_6: location.old_visible_id,
+        })
+      end
+
+      context "when no UPRN or address fields are provided" do
+        let(:attributes) { base_attributes.merge({ field_18: nil, field_19: nil, field_21: nil, field_23: nil, field_24: nil }) }
+
+        it "does not require the address or UPRN (no not answered errors)" do
+          parser.valid?
+          %i[field_18 field_19 field_21 field_23 field_24].each do |field|
+            expect(parser.errors[field]).to be_empty
+          end
+        end
+
+        it "does not import any address or UPRN fields" do
+          log = parser.log
+          log.valid?
+          expect(log.read_attribute(:uprn)).to be_nil
+          expect(log.read_attribute(:address_line1)).to be_nil
+          expect(log.read_attribute(:town_or_city)).to be_nil
+          expect(log.read_attribute(:postcode_full)).to be_nil
+        end
+
+        it "derives the local authority from the scheme's location" do
+          log = parser.log
+          log.valid?
+          expect(log.read_attribute(:la)).to eq(location.location_code)
+          expect(log.is_la_inferred).to be true
+        end
+      end
+
+      context "when address and UPRN fields are provided in the template" do
+        let(:attributes) do
+          base_attributes.merge({
+            field_18: "123456789012",
+            field_19: "1 Test Street",
+            field_21: "Testville",
+            field_23: postcode_first_part,
+            field_24: postcode_second_part,
+            field_25: "E09000008",
+          })
+        end
+
+        it "ignores them and does not import the address or UPRN fields" do
+          log = parser.log
+          log.valid?
+          expect(log.read_attribute(:uprn)).to be_nil
+          expect(log.read_attribute(:address_line1)).to be_nil
+          expect(log.read_attribute(:postcode_full)).to be_nil
+        end
+
+        it "still derives the local authority from the scheme's location, ignoring the template LA" do
+          log = parser.log
+          log.valid?
+          expect(log.read_attribute(:la)).to eq(location.location_code)
+        end
+      end
+    end
+
     describe "#field_17" do # unitletas
       context "when no longer a valid option from previous year" do
         let(:attributes) { setup_section_params.merge({ field_17: "4" }) }

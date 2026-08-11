@@ -1688,6 +1688,36 @@ RSpec.describe LettingsLog, type: :model do
     end
   end
 
+  describe "address behaviour for a non-confidential supported housing log continues as normal", metadata: { year: 26 } do
+    let(:startdate) { collection_start_date_for_year(2026) }
+    let(:non_confidential_scheme) { create(:scheme, sensitive: 0) }
+    let(:location) { create(:location, scheme: non_confidential_scheme) }
+
+    around do |example|
+      Timecop.freeze(collection_start_date_for_year(2026)) do
+        Singleton.__init__(FormHandler)
+        example.run
+      end
+    end
+
+    before do
+      log.needstype = 2
+      log.scheme = non_confidential_scheme
+      log.location = location
+    end
+
+    it "still asks for the address or UPRN" do
+      expect(log.is_address_asked?).to be true
+    end
+
+    it "routes a new-build property down the manual address entry route" do
+      log.assign_attributes(manual_address_entry_selected: false, rsnvac: 15, uprn: nil)
+
+      expect { log.set_derived_fields! }
+        .to change(log, :manual_address_entry_selected).from(false).to(true)
+    end
+  end
+
   describe "#infer_at_most_one_relationship!" do
     context "when 2025", metadata: { year: 25 } do
       before do

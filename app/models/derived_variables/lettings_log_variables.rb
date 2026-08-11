@@ -188,7 +188,7 @@ module DerivedVariables::LettingsLogVariables
       self.uprn_selection = nil
       self.postcode_known = nil
       self.manual_address_entry_selected = nil
-      location_la = location&.linked_local_authorities&.active(form.start_date)&.first&.code || location&.location_code
+      location_la = location_derived_la
       if location_la.present?
         self.la = location_la
         self.is_la_inferred = true

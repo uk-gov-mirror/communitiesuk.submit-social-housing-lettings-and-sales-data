@@ -493,8 +493,8 @@ class BulkUpload::Lettings::Year2026::RowParser
   validate :validate_assigned_to_when_support, on: :after_log
   validate :validate_all_charges_given, on: :after_log
 
-  validate :validate_uprn_exists_if_any_key_address_fields_are_blank, on: :after_log
-  validate :validate_address_fields, on: :after_log
+  validate :validate_uprn_exists_if_any_key_address_fields_are_blank, on: :after_log, unless: :scheme_has_confidential_information?
+  validate :validate_address_fields, on: :after_log, unless: :scheme_has_confidential_information?
 
   validate :validate_nationality, on: :after_log
   validate :validate_reasonpref_reason_values, on: :after_log
@@ -1491,26 +1491,31 @@ private
 
     attributes["first_time_property_let_as_social_housing"] = first_time_property_let_as_social_housing
 
-    attributes["uprn_known"] = field_18.present? ? 1 : 0
-    attributes["uprn_confirmed"] = 1 if field_18.present?
-    attributes["skip_update_uprn_confirmed"] = true
-    attributes["uprn"] = field_18
-    attributes["address_line1"] = field_19
-    attributes["address_line1_as_entered"] = field_19
-    attributes["address_line2"] = field_20
-    attributes["address_line2_as_entered"] = field_20
-    attributes["town_or_city"] = field_21
-    attributes["town_or_city_as_entered"] = field_21
-    attributes["county"] = field_22
-    attributes["county_as_entered"] = field_22
-    attributes["postcode_full"] = postcode_full
-    attributes["postcode_full_as_entered"] = postcode_full
-    attributes["postcode_known"] = postcode_known
-    attributes["la"] = field_25
-    attributes["la_as_entered"] = field_25
-    attributes["address_line1_input"] = address_line1_input
-    attributes["postcode_full_input"] = postcode_full
-    attributes["select_best_address_match"] = true if field_18.blank?
+    # For a confidential scheme, the address and UPRN fields in the BU are ignored:
+    # they are left null and the local authority is instead derived from the
+    # scheme's location in LettingsLog#set_derived_fields!.
+    unless scheme_has_confidential_information?
+      attributes["uprn_known"] = field_18.present? ? 1 : 0
+      attributes["uprn_confirmed"] = 1 if field_18.present?
+      attributes["skip_update_uprn_confirmed"] = true
+      attributes["uprn"] = field_18
+      attributes["address_line1"] = field_19
+      attributes["address_line1_as_entered"] = field_19
+      attributes["address_line2"] = field_20
+      attributes["address_line2_as_entered"] = field_20
+      attributes["town_or_city"] = field_21
+      attributes["town_or_city_as_entered"] = field_21
+      attributes["county"] = field_22
+      attributes["county_as_entered"] = field_22
+      attributes["postcode_full"] = postcode_full
+      attributes["postcode_full_as_entered"] = postcode_full
+      attributes["postcode_known"] = postcode_known
+      attributes["la"] = field_25
+      attributes["la_as_entered"] = field_25
+      attributes["address_line1_input"] = address_line1_input
+      attributes["postcode_full_input"] = postcode_full
+      attributes["select_best_address_match"] = true if field_18.blank?
+    end
 
     attributes["gender_same_as_sex1"] = field_43
     attributes["gender_description1"] = field_44
@@ -1581,6 +1586,10 @@ private
     return if scheme.nil?
 
     @location ||= scheme.locations.find_by_id_on_multiple_fields(field_6)
+  end
+
+  def scheme_has_confidential_information?
+    scheme&.sensitive == "Yes"
   end
 
   def startdate

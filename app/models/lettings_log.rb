@@ -228,7 +228,7 @@ class LettingsLog < Log
     return super unless location
     return super if form.start_year_2026_or_later? && super
 
-    location.linked_local_authorities.active(form.start_date).first&.code || location.location_code
+    location_derived_la
   end
 
   def postcode_full
@@ -848,6 +848,12 @@ class LettingsLog < Log
   end
 
 private
+
+  def location_derived_la
+    return unless location
+
+    location.linked_local_authorities.active(form.start_date).first&.code || location.location_code
+  end
 
   def reset_invalid_unresolved_log_fields!
     return unless unresolved?
