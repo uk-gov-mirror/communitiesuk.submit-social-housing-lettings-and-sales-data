@@ -1584,7 +1584,7 @@ private
   end
 
   def scheme_has_confidential_information?
-    scheme&.has_confidential_information? || false
+    !!scheme&.has_confidential_information?
   end
 
   def location
