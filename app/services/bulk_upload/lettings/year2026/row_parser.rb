@@ -1491,9 +1491,6 @@ private
 
     attributes["first_time_property_let_as_social_housing"] = first_time_property_let_as_social_housing
 
-    # For a confidential scheme, the address and UPRN fields in the BU are ignored:
-    # they are left null and the local authority is instead derived from the
-    # scheme's location in LettingsLog#set_derived_fields!.
     unless scheme_has_confidential_information?
       attributes["uprn_known"] = field_18.present? ? 1 : 0
       attributes["uprn_confirmed"] = 1 if field_18.present?
