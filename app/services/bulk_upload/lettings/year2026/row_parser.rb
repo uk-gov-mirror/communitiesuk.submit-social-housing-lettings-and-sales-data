@@ -1579,14 +1579,14 @@ private
     @scheme ||= Scheme.where(id: (owning_organisation.owned_schemes + managing_organisation.owned_schemes).map(&:id)).find_by_id_on_multiple_fields(field_5.strip, field_6)
   end
 
+  def scheme_has_confidential_information?
+    scheme&.has_confidential_information? || false
+  end
+
   def location
     return if scheme.nil?
 
     @location ||= scheme.locations.find_by_id_on_multiple_fields(field_6)
-  end
-
-  def scheme_has_confidential_information?
-    scheme&.has_confidential_information? || false
   end
 
   def startdate

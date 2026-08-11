@@ -10,12 +10,6 @@ class Form::Lettings::Questions::AddressSearch < ::Form::Question
     @hide_question_number_on_page = true
   end
 
-  def unanswered_error_message(log = nil)
-    return super unless log&.is_supported_housing?
-
-    I18n.t("validations.lettings.property.address.not_answered_supported_housing")
-  end
-
   def answer_options(log = nil, _user = nil)
     return {} unless ActiveRecord::Base.connected?
     return {} unless log&.address_search_options&.any?
@@ -42,6 +36,12 @@ class Form::Lettings::Questions::AddressSearch < ::Form::Question
 
   def displayed_answer_options(log, user = nil)
     answer_options(log, user).transform_values { |value| value["value"] } || {}
+  end
+
+  def unanswered_error_message(log = nil)
+    return super unless log&.is_supported_housing?
+
+    I18n.t("validations.lettings.property.address.not_answered_supported_housing")
   end
 
   QUESTION_NUMBER_FROM_YEAR = { 2024 => 12, 2025 => 16, 2026 => 16 }.freeze
