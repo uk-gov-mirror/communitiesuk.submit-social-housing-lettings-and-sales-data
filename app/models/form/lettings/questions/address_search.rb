@@ -10,6 +10,12 @@ class Form::Lettings::Questions::AddressSearch < ::Form::Question
     @hide_question_number_on_page = true
   end
 
+  def unanswered_error_message(log = nil)
+    return super unless log&.is_supported_housing?
+
+    I18n.t("validations.lettings.property.address.not_answered_supported_housing")
+  end
+
   def answer_options(log = nil, _user = nil)
     return {} unless ActiveRecord::Base.connected?
     return {} unless log&.address_search_options&.any?

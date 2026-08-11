@@ -33,36 +33,64 @@ RSpec.describe Form::Lettings::Pages::PropertyLocalAuthority, type: :model do
   end
 
   context "when routing to the page" do
-    let(:log) { build(:lettings_log) }
-
     before do
       allow(form).to receive(:start_year_2025_or_later?).and_return(true)
     end
 
-    it "is routed to when la is not inferred and it is general needs log" do
-      log.needstype = 1
-      log.is_la_inferred = false
-      expect(page).to be_routed_to(log, nil)
+    context "when the log is general needs" do
+      let(:log) { build(:lettings_log, needstype: 1) }
+
+      it "is not routed to when `is_la_inferred` is nil" do
+        log.is_la_inferred = nil
+        expect(page).not_to be_routed_to(log, nil)
+      end
+
+      it "is not routed to when LA is inferred" do
+        log.is_la_inferred = true
+        expect(page).not_to be_routed_to(log, nil)
+      end
+
+      it "is routed to when LA is not inferred" do
+        log.is_la_inferred = false
+        expect(page).to be_routed_to(log, nil)
+      end
     end
 
-    it "is not routed to when la is inferred" do
-      log.needstype = 1
-      log.is_la_inferred = true
-      expect(page).not_to be_routed_to(log, nil)
-    end
+    context "when the log is supported housing" do
+      let(:log) { build(:lettings_log, needstype: 2) }
 
-    it "is not routed to when it's a supported housing log" do
-      log.needstype = 2
-      log.is_la_inferred = false
-      expect(page).not_to be_routed_to(log, nil)
-    end
+      it "is not routed to when `is_la_inferred` is nil" do
+        log.is_la_inferred = nil
+        expect(page).not_to be_routed_to(log, nil)
+      end
 
-    context "when the scheme is confidential" do
-      let(:log) { build(:lettings_log, needstype: 2, scheme: build(:scheme, sensitive: 1)) }
+      it "is not routed to when LA is inferred" do
+        log.is_la_inferred = true
+        expect(page).not_to be_routed_to(log, nil)
+      end
 
-      it "is not routed to, even when the LA could not be inferred" do
+      it "is not routed to, even when LA is not inferred" do
         log.is_la_inferred = false
         expect(page).not_to be_routed_to(log, nil)
+      end
+
+      context "when the scheme has confidential information" do
+        let(:log) { build(:lettings_log, needstype: 2, scheme: build(:scheme, sensitive: 1)) }
+
+        it "is not routed to when `is_la_inferred` is nil" do
+          log.is_la_inferred = nil
+          expect(page).not_to be_routed_to(log, nil)
+        end
+
+        it "is not routed to when LA is inferred" do
+          log.is_la_inferred = true
+          expect(page).not_to be_routed_to(log, nil)
+        end
+
+        it "is not routed to, even when LA is not inferred" do
+          log.is_la_inferred = false
+          expect(page).not_to be_routed_to(log, nil)
+        end
       end
     end
   end

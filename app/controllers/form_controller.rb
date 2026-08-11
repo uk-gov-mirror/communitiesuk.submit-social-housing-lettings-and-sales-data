@@ -35,7 +35,7 @@ class FormController < ApplicationController
       else
         @log.valid? if mandatory_questions_with_no_response.any?
         mandatory_questions_with_no_response.map do |question|
-          @log.errors.add question.id.to_sym, question.unanswered_error_message, category: :not_answered
+          @log.errors.add question.id.to_sym, question.unanswered_error_message(@log), category: :not_answered
         end
         error_attributes = @log.errors.map(&:attribute)
         Rails.logger.info "User triggered validation(s) on: #{error_attributes.join(', ')}"

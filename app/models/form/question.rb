@@ -240,7 +240,7 @@ class Form::Question
     format_ending(label)
   end
 
-  def unanswered_error_message
+  def unanswered_error_message(_log = nil)
     question_text = error_display_label.presence || "this question."
     I18n.t("validations.not_answered", question: question_text.downcase)
   end

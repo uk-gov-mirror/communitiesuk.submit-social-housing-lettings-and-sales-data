@@ -18,7 +18,7 @@ class Form::Lettings::Questions::Declaration < ::Form::Question
     { "declaration" => { "value" => declaration_text } }.freeze
   end
 
-  def unanswered_error_message
+  def unanswered_error_message(_log = nil)
     if form.start_year_2024_or_later?
       I18n.t("validations.declaration.missing.post_2024")
     else
