@@ -688,9 +688,9 @@ private
   def validate_uprn_exists_if_any_key_address_fields_are_blank
     if field_18.blank? && !key_address_fields_provided?
       %i[field_19 field_21 field_23 field_24].each do |field|
-        errors.add(field, I18n.t("#{ERROR_BASE_KEY}.address.not_answered")) if send(field).blank?
+        errors.add(field, with_confidential_scheme_suffix(I18n.t("#{ERROR_BASE_KEY}.address.not_answered"))) if send(field).blank?
       end
-      errors.add(:field_18, I18n.t("#{ERROR_BASE_KEY}.address.not_answered", question: "UPRN."))
+      errors.add(:field_18, with_confidential_scheme_suffix(I18n.t("#{ERROR_BASE_KEY}.address.not_answered", question: "UPRN.")))
     end
   end
 
@@ -701,21 +701,25 @@ private
   def validate_address_fields
     if field_18.blank? || log.errors.attribute_names.include?(:uprn)
       if field_19.blank? && errors[:field_19].blank?
-        errors.add(:field_19, I18n.t("#{ERROR_BASE_KEY}.not_answered", question: "address line 1."))
+        errors.add(:field_19, with_confidential_scheme_suffix(I18n.t("#{ERROR_BASE_KEY}.not_answered", question: "address line 1.")))
       end
 
       if field_21.blank? && errors[:field_21].blank?
-        errors.add(:field_21, I18n.t("#{ERROR_BASE_KEY}.not_answered", question: "town or city."))
+        errors.add(:field_21, with_confidential_scheme_suffix(I18n.t("#{ERROR_BASE_KEY}.not_answered", question: "town or city.")))
       end
 
       if field_23.blank? && errors[:field_23].blank?
-        errors.add(:field_23, I18n.t("#{ERROR_BASE_KEY}.not_answered", question: "part 1 of postcode."))
+        errors.add(:field_23, with_confidential_scheme_suffix(I18n.t("#{ERROR_BASE_KEY}.not_answered", question: "part 1 of postcode.")))
       end
 
       if field_24.blank? && errors[:field_24].blank?
-        errors.add(:field_24, I18n.t("#{ERROR_BASE_KEY}.not_answered", question: "part 2 of postcode."))
+        errors.add(:field_24, with_confidential_scheme_suffix(I18n.t("#{ERROR_BASE_KEY}.not_answered", question: "part 2 of postcode.")))
       end
     end
+  end
+
+  def with_confidential_scheme_suffix(message)
+    "#{message} #{I18n.t("#{ERROR_BASE_KEY}.address.confidential_scheme_suffix")}"
   end
 
   def validate_incomplete_soft_validations

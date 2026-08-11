@@ -65,36 +65,6 @@ RSpec.describe Form::Lettings::Questions::AddressSearch, type: :model do
     end
   end
 
-  describe "#unanswered_error_message" do
-    context "when the log is supported housing" do
-      let(:log) { build(:lettings_log, needstype: 2) }
-
-      it "returns the confidential-scheme guidance message" do
-        expect(question.unanswered_error_message(log)).to eq(
-          "You must enter address. If your letting is in a confidential scheme, please check the scheme you chose in the ‘Set up this lettings log’ section. If a scheme needs updating to mark it as confidential, a CORE coordinator in your organisation can do this.",
-        )
-      end
-    end
-
-    context "when the log is general needs" do
-      let(:log) { build(:lettings_log, needstype: 1) }
-
-      it "returns the default unanswered message" do
-        expect(question.unanswered_error_message(log)).to eq(
-          I18n.t("validations.not_answered", question: question.error_display_label.downcase),
-        )
-      end
-    end
-
-    context "when no log is given" do
-      it "returns the default unanswered message" do
-        expect(question.unanswered_error_message).to eq(
-          I18n.t("validations.not_answered", question: question.error_display_label.downcase),
-        )
-      end
-    end
-  end
-
   describe "get_extra_check_answer_value" do
     context "when address is not present" do
       let(:log) { build(:lettings_log, manual_address_entry_selected: false) }
@@ -125,6 +95,36 @@ RSpec.describe Form::Lettings::Questions::AddressSearch, type: :model do
             "\n\n19, Charlton Gardens\nBristol\nBS10 6LU\nBristol, City of",
           )
         end
+      end
+    end
+  end
+
+  describe "#unanswered_error_message" do
+    context "when the log is supported housing" do
+      let(:log) { build(:lettings_log, needstype: 2) }
+
+      it "returns the confidential-scheme guidance message" do
+        expect(question.unanswered_error_message(log)).to eq(
+          "You must enter address. If your letting is in a confidential scheme, please check the scheme you chose in the ‘Set up this lettings log’ section. If a scheme needs updating to mark it as confidential, a CORE coordinator in your organisation can do this.",
+        )
+      end
+    end
+
+    context "when the log is general needs" do
+      let(:log) { build(:lettings_log, needstype: 1) }
+
+      it "returns the default unanswered message" do
+        expect(question.unanswered_error_message(log)).to eq(
+          I18n.t("validations.not_answered", question: question.error_display_label.downcase),
+        )
+      end
+    end
+
+    context "when no log is given" do
+      it "returns the default unanswered message" do
+        expect(question.unanswered_error_message).to eq(
+          I18n.t("validations.not_answered", question: question.error_display_label.downcase),
+        )
       end
     end
   end
