@@ -4,6 +4,8 @@ en:
       property:
         address:
           not_answered_supported_housing: "You must enter address. If your letting is in a confidential scheme, please check the scheme you chose in the ‘Set up this lettings log’ section. If a scheme needs updating to mark it as confidential, a CORE coordinator in your organisation can do this."
+        address_line1:
+          not_answered_supported_housing: "You must enter address line 1. If your letting is in a confidential scheme, please check the scheme you chose in the ‘Set up this lettings log’ section. If a scheme needs updating to mark it as confidential, a CORE coordinator in your organisation can do this."
         postcode_full:
           invalid: "Enter a postcode in the correct format, for example AA1 1AA."
           not_in_england: "It looks like you have an entered a postcode outside of England. Only create logs for lettings in England."

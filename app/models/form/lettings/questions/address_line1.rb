@@ -18,5 +18,11 @@ class Form::Lettings::Questions::AddressLine1 < ::Form::Question
     ].select(&:present?).join("\n")
   end
 
+  def unanswered_error_message(log = nil)
+    return super unless log&.is_supported_housing?
+
+    I18n.t("validations.lettings.property.address_line1.not_answered_supported_housing")
+  end
+
   QUESTION_NUMBER_FROM_YEAR = { 2023 => 12, 2024 => 13, 2025 => 17, 2026 => 17 }.freeze
 end
