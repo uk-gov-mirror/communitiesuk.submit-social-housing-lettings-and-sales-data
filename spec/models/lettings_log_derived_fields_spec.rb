@@ -1638,7 +1638,7 @@ RSpec.describe LettingsLog, type: :model do
           .and change { log.read_attribute(:postcode_full) }.from(postcode_full).to(nil)
           .and change { log.read_attribute(:uprn_selection) }.from(uprn_selection).to(nil)
           .and change { log.read_attribute(:postcode_known) }.from(postcode_known).to(nil)
-          .and change { log.read_attribute(:manual_address_entry_selected ) }.from(manual_address_entry_selected).to(nil)
+          .and change { log.read_attribute(:manual_address_entry_selected) }.from(manual_address_entry_selected).to(nil)
       end
 
       context "when the log is a new-build first let" do
@@ -1665,7 +1665,7 @@ RSpec.describe LettingsLog, type: :model do
             .and change { log.read_attribute(:postcode_full) }.from(postcode_full).to(nil)
             .and change { log.read_attribute(:uprn_selection) }.from(uprn_selection).to(nil)
             .and change { log.read_attribute(:postcode_known) }.from(postcode_known).to(nil)
-            .and change { log.read_attribute(:manual_address_entry_selected ) }.from(manual_address_entry_selected).to(nil)
+            .and change { log.read_attribute(:manual_address_entry_selected) }.from(manual_address_entry_selected).to(nil)
         end
       end
     end
