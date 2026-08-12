@@ -38,5 +38,11 @@ class Form::Lettings::Questions::AddressSearch < ::Form::Question
     answer_options(log, user).transform_values { |value| value["value"] } || {}
   end
 
+  def unanswered_error_message(log = nil)
+    return super unless log&.is_supported_housing?
+
+    I18n.t("validations.lettings.property.address.not_answered_supported_housing")
+  end
+
   QUESTION_NUMBER_FROM_YEAR = { 2024 => 12, 2025 => 16, 2026 => 16 }.freeze
 end

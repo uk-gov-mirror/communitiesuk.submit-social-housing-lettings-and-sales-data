@@ -73,6 +73,10 @@ en:
             content: "<p>The Unique Property Reference Number (UPRN) is a unique number system created by Ordnance Survey and used by housing providers and various industries across the UK. An example is 0010457355.</p>
               <p>The UPRN may not be the same as the property reference assigned by your organisation.</p>"
 
+          confidential_supported_lettings:
+            title: "What should I do for confidential supported lettings?"
+            content: "Full address or UPRN is not required for confidential supported lettings. You are seeing this question because the scheme you chose in the ‘Set up this lettings log’ section does not have the ‘Confidential information’ box ticked. Please check the scheme you chose. If a scheme needs updating to mark it as confidential, a CORE coordinator in your organisation can do this. If you or they need further assistance contact the helpdesk."
+
           needs_type:
             title: "What does each need type mean?"
             content: "General needs housing includes both self-contained and shared housing without support or specific adaptations.<br><br>Supported housing is housing with special design facilities or features targeted at a specific client group requiring support, for example housing designed for older people, sheltered accommodation, extra care housing. It can include direct access hostels, group homes, and purpose-built self-contained housing. We do not require CORE logs for residential care or nursing homes."

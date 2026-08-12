@@ -26,7 +26,7 @@ class Form::Lettings::Questions::UprnKnown < ::Form::Question
     "0" => { "value" => "No" },
   }.freeze
 
-  def unanswered_error_message
+  def unanswered_error_message(_log = nil)
     I18n.t("validations.property.uprn_known.invalid")
   end
 

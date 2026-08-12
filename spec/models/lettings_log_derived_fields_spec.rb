@@ -1585,6 +1585,113 @@ RSpec.describe LettingsLog, type: :model do
     end
   end
 
+  describe "address field behaviour for confidential schemes", metadata: { year: 26 } do
+    let(:startdate) { collection_start_date_for_year(2026) }
+
+    let(:uprn) { "123456789" }
+    let(:uprn_known) { 1 }
+    let(:uprn_confirmed) { 1 }
+    let(:address_line1) { "1 Test Street" }
+    let(:address_line2) { "Testville" }
+    let(:town_or_city) { "Testford" }
+    let(:county) { "Testshire" }
+    let(:postcode_full) { "SW1 1AA" }
+    let(:la) { "E07000105" }
+    let(:uprn_selection) { uprn }
+    let(:postcode_known) { 1 }
+    let(:manual_address_entry_selected) { true }
+
+    around do |example|
+      Timecop.freeze(collection_start_date_for_year(2026)) do
+        Singleton.__init__(FormHandler)
+        example.run
+      end
+    end
+
+    before do
+      log.needstype = 2
+      log.assign_attributes(uprn:, uprn_known:, uprn_confirmed:, address_line1:, address_line2:, town_or_city:, county:, postcode_full:, la:, uprn_selection:, postcode_known:, manual_address_entry_selected:)
+    end
+
+    context "when the scheme has confidential information" do
+      let(:confidential_scheme) { create(:scheme, sensitive: 1) }
+      let(:location) { create(:location, scheme: confidential_scheme) }
+
+      before do
+        log.scheme = confidential_scheme
+        log.location = location
+      end
+
+      it "does not ask the address or UPRN question" do
+        expect(log.is_address_asked?).to be false
+      end
+
+      it "resets all the address and UPRN fields to nil" do
+        expect { log.set_derived_fields! }
+          .to change { log.read_attribute(:uprn) }.from(uprn).to(nil)
+          .and change { log.read_attribute(:uprn_known) }.from(uprn_known).to(nil)
+          .and change { log.read_attribute(:uprn_confirmed) }.from(uprn_confirmed).to(nil)
+          .and change { log.read_attribute(:address_line1) }.from(address_line1).to(nil)
+          .and change { log.read_attribute(:address_line2) }.from(address_line2).to(nil)
+          .and change { log.read_attribute(:town_or_city) }.from(town_or_city).to(nil)
+          .and change { log.read_attribute(:county) }.from(county).to(nil)
+          .and change { log.read_attribute(:postcode_full) }.from(postcode_full).to(nil)
+          .and change { log.read_attribute(:uprn_selection) }.from(uprn_selection).to(nil)
+          .and change { log.read_attribute(:postcode_known) }.from(postcode_known).to(nil)
+          .and change { log.read_attribute(:manual_address_entry_selected) }.from(manual_address_entry_selected).to(nil)
+      end
+
+      context "when the log is a new-build first let" do
+        before do
+          log.rsnvac = 15
+        end
+
+        it "still does not ask the address or UPRN question (confidential overrides new-build)" do
+          expect(log.is_address_asked?).to be false
+        end
+
+        it "resets all the address and UPRN fields to nil" do
+          expect { log.set_derived_fields! }
+            .to change { log.read_attribute(:uprn) }.from(uprn).to(nil)
+            .and change { log.read_attribute(:uprn_known) }.from(uprn_known).to(nil)
+            .and change { log.read_attribute(:uprn_confirmed) }.from(uprn_confirmed).to(nil)
+            .and change { log.read_attribute(:address_line1) }.from(address_line1).to(nil)
+            .and change { log.read_attribute(:address_line2) }.from(address_line2).to(nil)
+            .and change { log.read_attribute(:town_or_city) }.from(town_or_city).to(nil)
+            .and change { log.read_attribute(:county) }.from(county).to(nil)
+            .and change { log.read_attribute(:postcode_full) }.from(postcode_full).to(nil)
+            .and change { log.read_attribute(:town_or_city) }.from(town_or_city).to(nil)
+            .and change { log.read_attribute(:county) }.from(county).to(nil)
+            .and change { log.read_attribute(:postcode_full) }.from(postcode_full).to(nil)
+            .and change { log.read_attribute(:uprn_selection) }.from(uprn_selection).to(nil)
+            .and change { log.read_attribute(:postcode_known) }.from(postcode_known).to(nil)
+            .and change { log.read_attribute(:manual_address_entry_selected) }.from(manual_address_entry_selected).to(nil)
+        end
+      end
+    end
+
+    context "when the scheme does not have confidential information" do
+      let(:non_confidential_scheme) { create(:scheme, sensitive: 0) }
+      let(:location) { create(:location, scheme: non_confidential_scheme) }
+
+      before do
+        log.scheme = non_confidential_scheme
+        log.location = location
+      end
+
+      it "ask the address or UPRN question" do
+        expect(log.is_address_asked?).to be true
+      end
+
+      it "routes a new-build property down the manual address entry route" do
+        log.assign_attributes(manual_address_entry_selected: false, rsnvac: 15, uprn: nil)
+
+        expect { log.set_derived_fields! }
+          .to change(log, :manual_address_entry_selected).from(false).to(true)
+      end
+    end
+  end
+
   describe "#infer_at_most_one_relationship!" do
     context "when 2025", metadata: { year: 25 } do
       before do

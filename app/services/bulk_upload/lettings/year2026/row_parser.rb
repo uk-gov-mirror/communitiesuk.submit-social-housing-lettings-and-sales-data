@@ -493,8 +493,8 @@ class BulkUpload::Lettings::Year2026::RowParser
   validate :validate_assigned_to_when_support, on: :after_log
   validate :validate_all_charges_given, on: :after_log
 
-  validate :validate_uprn_exists_if_any_key_address_fields_are_blank, on: :after_log
-  validate :validate_address_fields, on: :after_log
+  validate :validate_uprn_exists_if_any_key_address_fields_are_blank, on: :after_log, unless: :scheme_has_confidential_information?
+  validate :validate_address_fields, on: :after_log, unless: :scheme_has_confidential_information?
 
   validate :validate_nationality, on: :after_log
   validate :validate_reasonpref_reason_values, on: :after_log
@@ -688,9 +688,9 @@ private
   def validate_uprn_exists_if_any_key_address_fields_are_blank
     if field_18.blank? && !key_address_fields_provided?
       %i[field_19 field_21 field_23 field_24].each do |field|
-        errors.add(field, I18n.t("#{ERROR_BASE_KEY}.address.not_answered")) if send(field).blank?
+        errors.add(field, with_confidential_scheme_suffix(I18n.t("#{ERROR_BASE_KEY}.address.not_answered"))) if send(field).blank?
       end
-      errors.add(:field_18, I18n.t("#{ERROR_BASE_KEY}.address.not_answered", question: "UPRN."))
+      errors.add(:field_18, with_confidential_scheme_suffix(I18n.t("#{ERROR_BASE_KEY}.address.not_answered", question: "UPRN.")))
     end
   end
 
@@ -701,21 +701,25 @@ private
   def validate_address_fields
     if field_18.blank? || log.errors.attribute_names.include?(:uprn)
       if field_19.blank? && errors[:field_19].blank?
-        errors.add(:field_19, I18n.t("#{ERROR_BASE_KEY}.not_answered", question: "address line 1."))
+        errors.add(:field_19, with_confidential_scheme_suffix(I18n.t("#{ERROR_BASE_KEY}.not_answered", question: "address line 1.")))
       end
 
       if field_21.blank? && errors[:field_21].blank?
-        errors.add(:field_21, I18n.t("#{ERROR_BASE_KEY}.not_answered", question: "town or city."))
+        errors.add(:field_21, with_confidential_scheme_suffix(I18n.t("#{ERROR_BASE_KEY}.not_answered", question: "town or city.")))
       end
 
       if field_23.blank? && errors[:field_23].blank?
-        errors.add(:field_23, I18n.t("#{ERROR_BASE_KEY}.not_answered", question: "part 1 of postcode."))
+        errors.add(:field_23, with_confidential_scheme_suffix(I18n.t("#{ERROR_BASE_KEY}.not_answered", question: "part 1 of postcode.")))
       end
 
       if field_24.blank? && errors[:field_24].blank?
-        errors.add(:field_24, I18n.t("#{ERROR_BASE_KEY}.not_answered", question: "part 2 of postcode."))
+        errors.add(:field_24, with_confidential_scheme_suffix(I18n.t("#{ERROR_BASE_KEY}.not_answered", question: "part 2 of postcode.")))
       end
     end
+  end
+
+  def with_confidential_scheme_suffix(message)
+    "#{message} #{I18n.t("#{ERROR_BASE_KEY}.address.confidential_scheme_suffix")}"
   end
 
   def validate_incomplete_soft_validations
@@ -1491,26 +1495,28 @@ private
 
     attributes["first_time_property_let_as_social_housing"] = first_time_property_let_as_social_housing
 
-    attributes["uprn_known"] = field_18.present? ? 1 : 0
-    attributes["uprn_confirmed"] = 1 if field_18.present?
-    attributes["skip_update_uprn_confirmed"] = true
-    attributes["uprn"] = field_18
-    attributes["address_line1"] = field_19
-    attributes["address_line1_as_entered"] = field_19
-    attributes["address_line2"] = field_20
-    attributes["address_line2_as_entered"] = field_20
-    attributes["town_or_city"] = field_21
-    attributes["town_or_city_as_entered"] = field_21
-    attributes["county"] = field_22
-    attributes["county_as_entered"] = field_22
-    attributes["postcode_full"] = postcode_full
-    attributes["postcode_full_as_entered"] = postcode_full
-    attributes["postcode_known"] = postcode_known
-    attributes["la"] = field_25
-    attributes["la_as_entered"] = field_25
-    attributes["address_line1_input"] = address_line1_input
-    attributes["postcode_full_input"] = postcode_full
-    attributes["select_best_address_match"] = true if field_18.blank?
+    unless scheme_has_confidential_information?
+      attributes["uprn_known"] = field_18.present? ? 1 : 0
+      attributes["uprn_confirmed"] = 1 if field_18.present?
+      attributes["skip_update_uprn_confirmed"] = true
+      attributes["uprn"] = field_18
+      attributes["address_line1"] = field_19
+      attributes["address_line1_as_entered"] = field_19
+      attributes["address_line2"] = field_20
+      attributes["address_line2_as_entered"] = field_20
+      attributes["town_or_city"] = field_21
+      attributes["town_or_city_as_entered"] = field_21
+      attributes["county"] = field_22
+      attributes["county_as_entered"] = field_22
+      attributes["postcode_full"] = postcode_full
+      attributes["postcode_full_as_entered"] = postcode_full
+      attributes["postcode_known"] = postcode_known
+      attributes["la"] = field_25
+      attributes["la_as_entered"] = field_25
+      attributes["address_line1_input"] = address_line1_input
+      attributes["postcode_full_input"] = postcode_full
+      attributes["select_best_address_match"] = true if field_18.blank?
+    end
 
     attributes["gender_same_as_sex1"] = field_43
     attributes["gender_description1"] = field_44
@@ -1575,6 +1581,10 @@ private
     return if field_5.nil? || owning_organisation.nil? || managing_organisation.nil?
 
     @scheme ||= Scheme.where(id: (owning_organisation.owned_schemes + managing_organisation.owned_schemes).map(&:id)).find_by_id_on_multiple_fields(field_5.strip, field_6)
+  end
+
+  def scheme_has_confidential_information?
+    !!scheme&.has_confidential_information?
   end
 
   def location

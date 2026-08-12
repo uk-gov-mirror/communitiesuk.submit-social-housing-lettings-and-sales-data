@@ -822,7 +822,13 @@ class LettingsLog < Log
   end
 
   def is_address_asked?
-    form.start_year_2026_or_later? || !is_supported_housing?
+    return false if scheme_has_confidential_information?
+
+    form.start_year_2026_or_later? || is_general_needs?
+  end
+
+  def scheme_has_confidential_information?
+    !!scheme&.has_confidential_information?
   end
 
   def referral_is_from_local_authority_housing_register?

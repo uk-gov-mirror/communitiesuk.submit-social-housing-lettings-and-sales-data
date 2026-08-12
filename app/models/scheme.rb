@@ -367,6 +367,10 @@ class Scheme < ApplicationRecord
     status_at(6.months.from_now) == :deactivating_soon
   end
 
+  def has_confidential_information?
+    sensitive == "Yes"
+  end
+
   def discard!
     update!(discarded_at: Time.zone.now)
     locations.each(&:discard!)

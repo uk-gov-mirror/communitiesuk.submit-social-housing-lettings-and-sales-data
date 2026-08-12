@@ -11,11 +11,14 @@ RSpec.describe BulkUpload::Lettings::Year2026::RowParser do
 
   let(:owning_org) { create(:organisation, :with_old_visible_id) }
   let(:managing_org) { create(:organisation, :with_old_visible_id, rent_periods: [4, 1]) }
-  let(:scheme) { create(:scheme, :with_old_visible_id, owning_organisation: owning_org) }
+  # Pinned non-confidential so the address/UPRN validations run as these tests expect;
+  # the confidential-scheme behaviour is covered by its own describe below (sensitive: 1).
+  let(:scheme) { create(:scheme, :with_old_visible_id, owning_organisation: owning_org, sensitive: 0) }
   let(:postcode_first_part) { "AA1".freeze }
   let(:postcode_second_part) { "1AA".freeze }
   let(:postcode) { "#{postcode_first_part} #{postcode_second_part}" }
   let(:location) { create(:location, :with_old_visible_id, scheme:, postcode:) }
+  let(:confidential_suffix) { I18n.t("validations.lettings.2026.bulk_upload.address.confidential_scheme_suffix") }
 
   let(:setup_section_params) do
     {
@@ -1676,10 +1679,10 @@ RSpec.describe BulkUpload::Lettings::Year2026::RowParser do
 
               it "adds errors to missing key address fields" do
                 parser.valid?
-                expect(parser.errors[:field_19]).to eql([I18n.t("validations.lettings.2026.bulk_upload.not_answered", question: "address line 1.")])
-                expect(parser.errors[:field_21]).to eql([I18n.t("validations.lettings.2026.bulk_upload.not_answered", question: "town or city.")])
-                expect(parser.errors[:field_23]).to eql([I18n.t("validations.lettings.2026.bulk_upload.not_answered", question: "part 1 of postcode.")])
-                expect(parser.errors[:field_24]).to eql([I18n.t("validations.lettings.2026.bulk_upload.not_answered", question: "part 2 of postcode.")])
+                expect(parser.errors[:field_19]).to eql(["#{I18n.t('validations.lettings.2026.bulk_upload.not_answered', question: 'address line 1.')} #{confidential_suffix}"])
+                expect(parser.errors[:field_21]).to eql(["#{I18n.t('validations.lettings.2026.bulk_upload.not_answered', question: 'town or city.')} #{confidential_suffix}"])
+                expect(parser.errors[:field_23]).to eql(["#{I18n.t('validations.lettings.2026.bulk_upload.not_answered', question: 'part 1 of postcode.')} #{confidential_suffix}"])
+                expect(parser.errors[:field_24]).to eql(["#{I18n.t('validations.lettings.2026.bulk_upload.not_answered', question: 'part 2 of postcode.')} #{confidential_suffix}"])
               end
             end
 
@@ -1707,11 +1710,20 @@ RSpec.describe BulkUpload::Lettings::Year2026::RowParser do
 
               it "adds appropriate errors to UPRN and key address fields" do
                 parser.valid?
-                expect(parser.errors[:field_18]).to eql([I18n.t("validations.lettings.2026.bulk_upload.address.not_answered")])
-                expect(parser.errors[:field_19]).to eql([I18n.t("validations.lettings.2026.bulk_upload.address.not_answered")])
-                expect(parser.errors[:field_21]).to eql([I18n.t("validations.lettings.2026.bulk_upload.address.not_answered")])
-                expect(parser.errors[:field_23]).to eql([I18n.t("validations.lettings.2026.bulk_upload.address.not_answered")])
-                expect(parser.errors[:field_24]).to eql([I18n.t("validations.lettings.2026.bulk_upload.address.not_answered")])
+                expect(parser.errors[:field_18]).to eql(["#{I18n.t('validations.lettings.2026.bulk_upload.address.not_answered')} #{confidential_suffix}"])
+                expect(parser.errors[:field_19]).to eql(["#{I18n.t('validations.lettings.2026.bulk_upload.address.not_answered')} #{confidential_suffix}"])
+                expect(parser.errors[:field_21]).to eql(["#{I18n.t('validations.lettings.2026.bulk_upload.address.not_answered')} #{confidential_suffix}"])
+                expect(parser.errors[:field_23]).to eql(["#{I18n.t('validations.lettings.2026.bulk_upload.address.not_answered')} #{confidential_suffix}"])
+                expect(parser.errors[:field_24]).to eql(["#{I18n.t('validations.lettings.2026.bulk_upload.address.not_answered')} #{confidential_suffix}"])
+              end
+
+              it "appends the confidential scheme guidance to each address error" do
+                parser.valid?
+                %i[field_18 field_19 field_21 field_23 field_24].each do |field|
+                  expect(parser.errors[field].first).to end_with(
+                    "If your letting is in a confidential scheme, check the scheme you chose. A coordinator can edit a scheme to confidential on the ‘Schemes' page.",
+                  )
+                end
               end
             end
 
@@ -1720,8 +1732,8 @@ RSpec.describe BulkUpload::Lettings::Year2026::RowParser do
 
               it "adds errors to UPRN and the missing key address field" do
                 parser.valid?
-                expect(parser.errors[:field_18]).to eql([I18n.t("validations.lettings.2026.bulk_upload.address.not_answered")])
-                expect(parser.errors[:field_19]).to eql([I18n.t("validations.lettings.2026.bulk_upload.address.not_answered")])
+                expect(parser.errors[:field_18]).to eql(["#{I18n.t('validations.lettings.2026.bulk_upload.address.not_answered')} #{confidential_suffix}"])
+                expect(parser.errors[:field_19]).to eql(["#{I18n.t('validations.lettings.2026.bulk_upload.address.not_answered')} #{confidential_suffix}"])
                 expect(parser.errors[:field_21]).to be_empty
                 expect(parser.errors[:field_23]).to be_empty
                 expect(parser.errors[:field_24]).to be_empty
@@ -1860,6 +1872,70 @@ RSpec.describe BulkUpload::Lettings::Year2026::RowParser do
               end
             end
           end
+        end
+      end
+    end
+
+    describe "UPRN and address fields for a supported housing log in a confidential scheme" do
+      let(:scheme) { create(:scheme, :with_old_visible_id, owning_organisation: owning_org, sensitive: 1) }
+      let(:base_attributes) do
+        setup_section_params.merge({
+          field_4: 2,
+          field_5: "S#{scheme.id}",
+          field_6: location.old_visible_id,
+        })
+      end
+
+      context "when no UPRN or address fields are provided" do
+        let(:attributes) { base_attributes.merge({ field_18: nil, field_19: nil, field_21: nil, field_23: nil, field_24: nil }) }
+
+        it "does not require the address or UPRN (no not answered errors)" do
+          parser.valid?
+          %i[field_18 field_19 field_21 field_23 field_24].each do |field|
+            expect(parser.errors[field]).to be_empty
+          end
+        end
+
+        it "does not import any address or UPRN fields" do
+          log = parser.log
+          log.valid?
+          expect(log.read_attribute(:uprn)).to be_nil
+          expect(log.read_attribute(:address_line1)).to be_nil
+          expect(log.read_attribute(:town_or_city)).to be_nil
+          expect(log.read_attribute(:postcode_full)).to be_nil
+        end
+
+        it "derives the local authority from the scheme's location" do
+          log = parser.log
+          log.valid?
+          expect(log.la).to eq(location.location_code)
+        end
+      end
+
+      context "when address and UPRN fields are provided in the template" do
+        let(:attributes) do
+          base_attributes.merge({
+            field_18: "123456789012",
+            field_19: "1 Test Street",
+            field_21: "Testville",
+            field_23: postcode_first_part,
+            field_24: postcode_second_part,
+            field_25: "E09000008",
+          })
+        end
+
+        it "ignores them and does not import the address or UPRN fields" do
+          log = parser.log
+          log.valid?
+          expect(log.read_attribute(:uprn)).to be_nil
+          expect(log.read_attribute(:address_line1)).to be_nil
+          expect(log.read_attribute(:postcode_full)).to be_nil
+        end
+
+        it "still derives the local authority from the scheme's location, ignoring the template LA" do
+          log = parser.log
+          log.valid?
+          expect(log.la).to eq(location.location_code)
         end
       end
     end
