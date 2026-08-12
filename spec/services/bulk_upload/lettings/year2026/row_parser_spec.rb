@@ -11,7 +11,9 @@ RSpec.describe BulkUpload::Lettings::Year2026::RowParser do
 
   let(:owning_org) { create(:organisation, :with_old_visible_id) }
   let(:managing_org) { create(:organisation, :with_old_visible_id, rent_periods: [4, 1]) }
-  let(:scheme) { create(:scheme, :with_old_visible_id, owning_organisation: owning_org) }
+  # Pinned non-confidential so the address/UPRN validations run as these tests expect;
+  # the confidential-scheme behaviour is covered by its own describe below (sensitive: 1).
+  let(:scheme) { create(:scheme, :with_old_visible_id, owning_organisation: owning_org, sensitive: 0) }
   let(:postcode_first_part) { "AA1".freeze }
   let(:postcode_second_part) { "1AA".freeze }
   let(:postcode) { "#{postcode_first_part} #{postcode_second_part}" }
